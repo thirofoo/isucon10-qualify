@@ -1,3 +1,3 @@
 USE isuumo;
-CREATE INDEX chair_popularity_idx ON isuumo.chair (popularity);
-CREATE INDEX estate_popularity_idx ON isuumo.estate (popularity);
+CREATE INDEX chair_kind_idx ON isuumo.chair (`kind`);
+CREATE INDEX chair_color_idx ON isuumo.chair (`color`);
