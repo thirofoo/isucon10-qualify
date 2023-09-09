@@ -889,7 +889,12 @@ func searchEstateNazotte(c echo.Context) error {
     re.Estates = estatesInPolygon
     re.Count = int64(len(estatesInPolygon))
 
-    return c.JSON(http.StatusOK, re)
+	if err := c.JSON(http.StatusOK, re); err != nil {
+		log.Println(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+    return nil
 }
 
 // coordinatesToText 関数: CoordinatesをPolygonのテキストに変換
