@@ -861,13 +861,6 @@ func searchEstateNazotte(c echo.Context) error {
     if len(coordinates.Coordinates) == 0 {
         return c.NoContent(http.StatusBadRequest)
     }
-
-    // 1. 範囲内のエステートを取得するSQLクエリを構築
-    bboxQuery := `
-        SELECT * FROM estate 
-        WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? 
-        ORDER BY popularity DESC, id ASC
-    `
     // 2. 地理的な条件を一括で検証するためのPolygonを取得
     polygonText := coordinatesToText(coordinates)
 
@@ -877,6 +870,7 @@ func searchEstateNazotte(c echo.Context) error {
         JOIN (
             SELECT id FROM estate
             WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ?
+			ORDER BY popularity DESC, id ASC
         ) AS bbox_estates
         ON estate.id = bbox_estates.id
         WHERE ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText('POINT(' || estate.latitude || ' ' || estate.longitude || ')'))
