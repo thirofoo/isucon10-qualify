@@ -864,7 +864,7 @@ func searchEstateNazotte(c echo.Context) error {
 	}
 
 	estatesInPolygon := []Estate{}
-	query := fmt.Sprintf(`SELECT * FROM estate WHERE ST_Contains(ST_PolygonFromText(%s), POINT(latitude, longitude)) ORDER BY popularity DESC, id ASC LIMIT %s`, coordinates.coordinatesToText(), NazotteLimit)
+	query := fmt.Sprintf(`SELECT * FROM estate WHERE ST_Contains(ST_PolygonFromText(%s), POINT(latitude, longitude)) ORDER BY popularity DESC, id ASC LIMIT %d`, coordinates.coordinatesToText(), NazotteLimit)
 	
 	if err := db.Select(&estatesInPolygon, query); err != nil {
 	    c.Echo().Logger.Errorf("db access is failed on executing query: %v", err)
