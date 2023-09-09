@@ -887,9 +887,9 @@ func searchEstateNazotte(c echo.Context) error {
 	    estateLongitude = append(estateLongitude, estate.Longitude)
 	}
 	
-	query = `SELECT e.* FROM estate AS e JOIN coordinates AS c ON ST_Contains(ST_PolygonFromText(?), ST_GeomFromText('POINT(' || ? || ' ' || ? || ')')) WHERE e.id IN (?)`
+	query = fmt.Sprintf(`SELECT e.* FROM estate AS e JOIN coordinates AS c ON ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText('POINT(' || ? || ' ' || ? || ')')) WHERE e.id IN (?)`, coordinates.coordinatesToText())
 	
-	if err := db.Select(&estatesInPolygon, query, coordinates.coordinatesToText(), estateLatitude, estateLongitude, estateIDs); err != nil {
+	if err := db.Select(&estatesInPolygon, query, estateLatitude, estateLongitude, estateIDs); err != nil {
 	    c.Echo().Logger.Errorf("db access is failed on executing query: %v", err)
 	    return c.NoContent(http.StatusInternalServerError)
 	}
