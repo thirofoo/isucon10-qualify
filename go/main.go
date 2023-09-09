@@ -851,7 +851,7 @@ func searchRecommendedEstateWithChair(c echo.Context) error {
 }
 
 func searchEstateNazotte(c echo.Context) error {
-	coordinates := Coordinates{}
+    coordinates := Coordinates{}
     err := c.Bind(&coordinates)
     if err != nil {
         c.Echo().Logger.Infof("post search estate nazotte failed : %v", err)
@@ -868,10 +868,8 @@ func searchEstateNazotte(c echo.Context) error {
         WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? 
         ORDER BY popularity DESC, id ASC
     `
-    bboxParams := []interface{}{coordinates.BottomRightCorner.Latitude, coordinates.TopLeftCorner.Latitude, coordinates.BottomRightCorner.Longitude, coordinates.TopLeftCorner.Longitude}
-
     // 2. 地理的な条件を一括で検証するためのPolygonを取得
-    polygonText := coordinates.coordinatesToText()
+    polygonText := coordinatesToText(coordinates)
 
     // 3. 一括でエステートを検証するクエリを構築
     validateQuery := fmt.Sprintf(`
@@ -884,11 +882,9 @@ func searchEstateNazotte(c echo.Context) error {
         WHERE ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText('POINT(' || estate.latitude || ' ' || estate.longitude || ')'))
     `, polygonText)
 
-    validateParams := []interface{}{coordinates.BottomRightCorner.Latitude, coordinates.TopLeftCorner.Latitude, coordinates.BottomRightCorner.Longitude, coordinates.TopLeftCorner.Longitude}
-
     // 4. 一括でエステートを取得
     var estatesInPolygon []Estate
-    err := db.Select(&estatesInPolygon, validateQuery, validateParams...)
+    err := db.Select(&estatesInPolygon, validateQuery, bboxParams(coordinates)...)
     if err != nil {
         c.Echo().Logger.Errorf("db access failed on executing validate if estate is in polygon: %v", err)
         return c.NoContent(http.StatusInternalServerError)
@@ -900,6 +896,27 @@ func searchEstateNazotte(c echo.Context) error {
     re.Count = int64(len(estatesInPolygon))
 
     return c.JSON(http.StatusOK, re)
+}
+
+// coordinatesToText 関数: CoordinatesをPolygonのテキストに変換
+func coordinatesToText(coords Coordinates) string {
+    var points []string
+    for _, coordinate := range coords.Coordinates {
+        point := fmt.Sprintf("%f %f", coordinate.Latitude, coordinate.Longitude)
+        points = append(points, point)
+    }
+    // Polygonのテキストを生成
+    polygonText := fmt.Sprintf("POLYGON((%s))", strings.Join(points, ","))
+    return polygonText
+}
+
+// bboxParams 関数: CoordinatesからSQLクエリのパラメータを生成
+func bboxParams(coords Coordinates) []interface{} {
+    var params []interface{}
+    for _, coordinate := range coords.Coordinates {
+        params = append(params, coordinate.Latitude, coordinate.Longitude, coordinate.Latitude, coordinate.Longitude)
+    }
+    return params
 }
 
 func postEstateRequestDocument(c echo.Context) error {
