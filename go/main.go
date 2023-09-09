@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"log"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -891,7 +890,7 @@ func searchEstateNazotte(c echo.Context) error {
     re.Count = int64(len(estatesInPolygon))
 
 	if err := c.JSON(http.StatusOK, re); err != nil {
-		log.Println(err)
+		c.Echo().Logger.Errorf("failed to marshal response: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
