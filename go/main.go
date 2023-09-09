@@ -886,14 +886,9 @@ func searchEstateNazotte(c echo.Context) error {
 	    estateLatitude = append(estateLatitude, estate.Latitude)
 	    estateLongitude = append(estateLongitude, estate.Longitude)
 	}
-	
-	query = fmt.Sprintf(`
-	    SELECT e.* FROM estate AS e 
-	    JOIN coordinates AS c ON ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText('POINT(' || ? || ' ' || ? || ')')) 
-	    WHERE e.id IN (?) 
-	    ORDER BY popularity DESC, id ASC
-	`, coordinates.coordinatesToText())
 
+	
+	query = fmt.Sprintf(`SELECT * FROM estate WHERE ST_Contains(ST_PolygonFromText(%s), POINT(latitude, longitude)) ORDER BY popularity DESC, id ASC`, coordinates.coordinatesToText())
 	
 	if err := db.Select(&estatesInPolygon, query, estateLatitude, estateLongitude, estateIDs); err != nil {
 	    c.Echo().Logger.Errorf("db access is failed on executing query: %v", err)
