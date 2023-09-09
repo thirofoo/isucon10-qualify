@@ -884,7 +884,7 @@ func searchEstateNazotte(c echo.Context) error {
 
     // 4. 一括でエステートを取得
     var estatesInPolygon []Estate
-    err := db.Select(&estatesInPolygon, validateQuery, bboxParams(coordinates)...)
+    err = db.Select(&estatesInPolygon, validateQuery, bboxParams(coordinates)...)
     if err != nil {
         c.Echo().Logger.Errorf("db access failed on executing validate if estate is in polygon: %v", err)
         return c.NoContent(http.StatusInternalServerError)
